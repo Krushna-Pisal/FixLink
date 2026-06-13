@@ -1,0 +1,27 @@
+server:
+  port: 8080
+
+spring:
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://localhost:27017/fixlink}
+  security:
+    jwt:
+      secret: ${JWT_SECRET:fixlink-super-secret-jwt-key-minimum-32chars-long}
+      expiry-ms: 86400000
+
+livekit:
+  api-key: ${LIVEKIT_API_KEY:devkey}
+  api-secret: ${LIVEKIT_API_SECRET:secret}
+  host: ${LIVEKIT_HOST:http://localhost:7880}
+
+groq:
+  api-key: ${GROQ_API_KEY:}
+  model: llama3-70b-8192
+
+cors:
+  allowed-origins: ${CORS_ORIGINS:http://localhost:5173}
+
+logging:
+  level:
+    dev.fixlink: DEBUG

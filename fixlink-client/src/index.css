@@ -1,0 +1,278 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────
+   Design Tokens
+───────────────────────────────────────────── */
+:root {
+  --fl-bg:            #07090E;
+  --fl-surface:       rgba(18, 22, 32, 0.75);
+  --fl-surface-solid: #12161F;
+  --fl-glass:         rgba(255, 255, 255, 0.045);
+  --fl-glass-border:  rgba(255, 255, 255, 0.09);
+  --fl-border:        #1E2433;
+  --fl-accent:        #3B82F6;
+  --fl-accent-soft:   rgba(59, 130, 246, 0.12);
+  --fl-success:       #22C55E;
+  --fl-warn:          #F59E0B;
+  --fl-danger:        #EF4444;
+  --fl-text-primary:  #F0F4FF;
+  --fl-text-muted:    #5A6882;
+}
+
+* { box-sizing: border-box; }
+
+/* ─────────────────────────────────────────────
+   Body — Aurora animated background (iOS-style)
+───────────────────────────────────────────── */
+body {
+  background-color: var(--fl-bg);
+  color: var(--fl-text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  margin: 0; padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Three overlapping animated aurora orbs — changes colour over time */
+  background-image:
+    radial-gradient(ellipse 900px 600px at 10% 0%,   rgba(59,130,246,0.10) 0%, transparent 70%),
+    radial-gradient(ellipse 700px 500px at 90% 100%, rgba(139,92,246,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 600px 400px at 50% 50%,  rgba(34,197,94,0.04)  0%, transparent 70%);
+  animation: aurora-drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes aurora-drift {
+  0%   {
+    background-position: 10% 0%, 90% 100%, 50% 50%;
+  }
+  33%  {
+    background-position: 15% 5%,  85% 95%,  55% 45%;
+  }
+  66%  {
+    background-position: 5%  -5%, 95% 105%, 45% 55%;
+  }
+  100% {
+    background-position: 12% 3%,  88% 98%,  52% 48%;
+  }
+}
+
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+/* ─────────────────────────────────────────────
+   Glass Surface (iOS frosted glass)
+───────────────────────────────────────────── */
+.glass {
+  background:  var(--fl-glass) !important;
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--fl-glass-border) !important;
+}
+
+/* Sidebar */
+aside {
+  background: rgba(7, 9, 14, 0.85) !important;
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border-right-color: var(--fl-glass-border) !important;
+}
+
+/* Top bar */
+header {
+  background: rgba(7, 9, 14, 0.78) !important;
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-bottom-color: var(--fl-glass-border) !important;
+}
+
+/* ─────────────────────────────────────────────
+   Live Pulse Animation
+───────────────────────────────────────────── */
+@keyframes pulse-ring {
+  0%   { transform: scale(1);   opacity: 0.9; }
+  100% { transform: scale(2.6); opacity: 0;   }
+}
+
+.live-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.live-badge .pulse-dot {
+  position: relative;
+  width: 8px; height: 8px;
+  flex-shrink: 0;
+}
+.live-badge .pulse-dot::before,
+.live-badge .pulse-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--fl-success);
+  animation: pulse-ring 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+.live-badge .pulse-dot::after  { animation-delay: 0.9s; }
+.live-badge .pulse-dot-core {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  background: var(--fl-success);
+  z-index: 1;
+}
+
+/* ─────────────────────────────────────────────
+   Scrollbar — hairline, iOS style
+───────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 3px; height: 3px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: rgba(255,255,255,0.12); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+
+/* ─────────────────────────────────────────────
+   Inputs — glass with focus ring
+───────────────────────────────────────────── */
+.input-base {
+  @apply w-full px-3.5 py-2.5 text-sm text-fl-primary rounded-xl
+         placeholder:text-fl-muted focus:outline-none
+         transition-all duration-200;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+}
+.input-base:focus {
+  background: rgba(59,130,246,0.07);
+  border-color: rgba(59,130,246,0.5);
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+/* ─────────────────────────────────────────────
+   Buttons
+───────────────────────────────────────────── */
+/* Primary — gradient pill with glow */
+.btn-primary {
+  @apply px-4 py-2 text-sm font-medium text-white rounded-xl
+         transition-all duration-200
+         disabled:opacity-40 disabled:cursor-not-allowed;
+  background: linear-gradient(140deg, #4F94FF 0%, #2563EB 100%);
+  box-shadow:
+    0 1px 0   rgba(255,255,255,0.15) inset,
+    0 0  0  1px rgba(59,130,246,0.35),
+    0 4px 12px rgba(59,130,246,0.20);
+}
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(140deg, #60A5FA 0%, #3B82F6 100%);
+  box-shadow:
+    0 1px 0   rgba(255,255,255,0.2) inset,
+    0 0  0  1px rgba(59,130,246,0.5),
+    0 6px 20px rgba(59,130,246,0.30);
+  transform: translateY(-1px);
+}
+.btn-primary:active:not(:disabled) { transform: translateY(0); box-shadow: none; }
+
+/* Danger */
+.btn-danger {
+  @apply px-3 py-1.5 text-sm font-medium text-fl-danger rounded-xl
+         transition-all duration-200
+         disabled:opacity-50 disabled:cursor-not-allowed;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.25);
+}
+.btn-danger:hover:not(:disabled) {
+  background: rgba(239,68,68,0.16);
+  border-color: rgba(239,68,68,0.45);
+}
+
+/* Ghost */
+.btn-ghost {
+  @apply px-3 py-1.5 text-sm text-fl-muted rounded-lg
+         hover:text-fl-primary transition-colors duration-150;
+}
+.btn-ghost:hover { background: rgba(255,255,255,0.05); }
+
+/* ─────────────────────────────────────────────
+   Card — glass tile
+───────────────────────────────────────────── */
+.card {
+  background: var(--fl-glass);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid var(--fl-glass-border);
+  border-radius: 18px;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset;
+}
+
+/* ─────────────────────────────────────────────
+   iOS-style segment control (tab switcher)
+───────────────────────────────────────────── */
+.segment-control {
+  display: flex;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 3px;
+  gap: 2px;
+}
+.segment-control button {
+  flex: 1;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 9px;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  color: var(--fl-text-muted);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+.segment-control button.active {
+  background: rgba(255,255,255,0.10);
+  color: var(--fl-text-primary);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* ─────────────────────────────────────────────
+   Animations — iOS spring curves
+───────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
+.animate-fade-in   { animation: fadeUp      0.3s  cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-scale-in  { animation: scaleIn     0.22s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-slide-in  { animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Loading skeleton shimmer */
+.shimmer {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 0%,
+    rgba(255,255,255,0.08) 40%,
+    rgba(255,255,255,0.04) 80%);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite;
+}
+
+/* ─────────────────────────────────────────────
+   iOS-style separator
+───────────────────────────────────────────── */
+.ios-separator {
+  height: 0.5px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+}
+
+/* Glow utility for stat numbers */
+.glow-blue   { text-shadow: 0 0 20px rgba(59,130,246,0.5); }
+.glow-green  { text-shadow: 0 0 20px rgba(34,197,94,0.5);  }
+.glow-amber  { text-shadow: 0 0 20px rgba(245,158,11,0.5); }

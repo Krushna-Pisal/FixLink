@@ -1,0 +1,71 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "1. Start LiveKit",
+      "type": "shell",
+      "command": "& \"d:\\AtomQFixLink\\.tools\\livekit\\livekit-server.exe\" --dev",
+      "presentation": {
+        "group": "fixlink",
+        "panel": "dedicated",
+        "reveal": "always"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "2. Start MongoDB",
+      "type": "shell",
+      "command": "& \"d:\\AtomQFixLink\\.tools\\mongodb\\mongodb-windows-x86_64-7.0.12\\bin\\mongod.exe\" --dbpath \"d:\\AtomQFixLink\\.tools\\mongodb-data\" --port 27017",
+      "presentation": {
+        "group": "fixlink",
+        "panel": "dedicated",
+        "reveal": "always"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "3. Start Backend",
+      "type": "shell",
+      "command": "& \"d:\\AtomQFixLink\\.tools\\maven\\apache-maven-3.9.6\\bin\\mvn.cmd\" spring-boot:run -f \"d:\\AtomQFixLink\\fixlink-server\\pom.xml\"",
+      "presentation": {
+        "group": "fixlink",
+        "panel": "dedicated",
+        "reveal": "always"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "4. Start Frontend",
+      "type": "shell",
+      "command": "npm install && npm run dev",
+      "options": {
+        "cwd": "d:\\AtomQFixLink\\fixlink-client"
+      },
+      "presentation": {
+        "group": "fixlink",
+        "panel": "dedicated",
+        "reveal": "always"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "FixLink: Start All",
+      "dependsOn": [
+        "1. Start LiveKit",
+        "2. Start MongoDB",
+        "3. Start Backend",
+        "4. Start Frontend"
+      ],
+      "dependsOrder": "sequence",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+version: '3.9'
+services:
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  livekit:
+    image: livekit/livekit-server:latest
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+    command: --dev
+    environment:
+      - LIVEKIT_KEYS=${LIVEKIT_API_KEY}:${LIVEKIT_API_SECRET}
+
+  fixlink-server:
+    build: ./fixlink-server
+    ports:
+      - "8080:8080"
+    environment:
+      MONGO_URI: mongodb://mongo:27017/fixlink
+      JWT_SECRET: ${JWT_SECRET}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      LIVEKIT_HOST: http://livekit:7880
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      CORS_ORIGINS: http://localhost:5173
+    depends_on:
+      - mongo
+      - livekit
+
+  fixlink-client:
+    build: ./fixlink-client
+    ports:
+      - "5173:80"
+    environment:
+      VITE_API_URL: http://localhost:8080/api
+      VITE_LIVEKIT_URL: ws://localhost:7880
+
+volumes:
+  mongo_data:

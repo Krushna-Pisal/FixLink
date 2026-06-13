@@ -1,0 +1,6 @@
+package dev.fixlink.shared;
+
+public enum EventType {
+    JOINED, LEFT, MUTED, UNMUTED, VIDEO_ON, VIDEO_OFF,
+    MESSAGE_SENT, SESSION_ENDED, SESSION_STARTED
+}

@@ -1,0 +1,48 @@
+flowchart TD
+    Agent["🧑‍💼 Support Agent\n(Browser)"]
+    Customer["👤 Customer\n(Browser — no install)"]
+
+    subgraph Frontend["Frontend — React 18 + Vite + Tailwind"]
+        Dashboard["Dashboard\nSession Management"]
+        SessionRoom["Session Room\nVideo + Chat"]
+        JoinPage["Join Page\nInvite Token"]
+    end
+
+    subgraph Backend["Backend — Spring Boot 3 + Java 23"]
+        Auth["JWT Auth\nSpring Security"]
+        SessionSvc["Session Service\nRBAC + Lifecycle"]
+        STOMP["STOMP WebSocket\nReal-time Chat"]
+        InsightSvc["Insight Service\nAI Summary"]
+        Timeline["Timeline Engine\nEvent Log"]
+    end
+
+    LiveKit["LiveKit Server\nSelf-hosted\nWebRTC Media Routing"]
+    MongoDB["MongoDB\nSessions · Chat · Timeline"]
+    Groq["Groq API\nLlama3-70b-8192"]
+
+    Agent --> Dashboard
+    Agent --> SessionRoom
+    Customer --> JoinPage
+
+    Dashboard -- "creates session\nREST API" --> SessionSvc
+    SessionSvc -- "issues invite token" --> Dashboard
+    JoinPage -- "token\nREST join" --> SessionSvc
+
+    SessionRoom -- "enters room" --> LiveKit
+    JoinPage -- "enters room" --> LiveKit
+    LiveKit -- "WebRTC video/audio" --> SessionRoom
+    LiveKit -- "WebRTC video/audio" --> JoinPage
+
+    SessionRoom -- "STOMP" --> STOMP
+    JoinPage -- "STOMP" --> STOMP
+    STOMP -- "persist messages" --> MongoDB
+
+    SessionSvc -- "sends session\nchat + timeline context" --> InsightSvc
+    InsightSvc -- "Resolution Intelligence\nReport" --> SessionRoom
+
+    Auth --> SessionSvc
+    SessionSvc --> MongoDB
+    Timeline --> MongoDB
+    InsightSvc --> Groq
+
+    SessionRoom -- "LiveKit token requests\nsigned JWT" --> Auth
