@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/sessions")
@@ -53,6 +54,30 @@ public class SessionController {
         String agentId = (String) httpReq.getAttribute("userId");
         SupportSession session = sessionService.endSession(id, agentId);
         return ResponseEntity.ok(ApiResponse.ok("Session ended", session));
+    }
+
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<SupportSession>> cancelSession(
+            @PathVariable String id,
+            @RequestBody Map<String, String> body,
+            HttpServletRequest httpReq) {
+        String agentId = (String) httpReq.getAttribute("userId");
+        String reason = body.get("reason");
+        SupportSession session = sessionService.cancelSession(id, agentId, reason);
+        return ResponseEntity.ok(ApiResponse.ok("Session cancelled", session));
+    }
+
+    @PostMapping("/join/{token}/end")
+    public ResponseEntity<ApiResponse<SupportSession>> customerEndSession(
+            @PathVariable String token,
+            @RequestBody Map<String, Object> body) {
+        Integer rating = null;
+        if (body.get("rating") != null) {
+            rating = ((Number) body.get("rating")).intValue();
+        }
+        String feedback = (String) body.get("feedback");
+        SupportSession session = sessionService.customerEndSession(token, rating, feedback);
+        return ResponseEntity.ok(ApiResponse.ok("Session ended by customer", session));
     }
 
     @GetMapping

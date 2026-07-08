@@ -28,6 +28,9 @@ public class SupportSession {
     private Instant endedAt;
     private String livekitRoomName;
     private String aiSummary;
+    private String cancellationReason;
+    private Integer rating;
+    private String customerFeedback;
 
     public SupportSession() {}
 
@@ -69,4 +72,13 @@ public class SupportSession {
 
     public String getAiSummary() { return aiSummary; }
     public void setAiSummary(String aiSummary) { this.aiSummary = aiSummary; }
+
+    public String getCancellationReason() { return cancellationReason; }
+    public void setCancellationReason(String cancellationReason) { this.cancellationReason = cancellationReason; }
+
+    public Integer getRating() { return rating; }
+    public void setRating(Integer rating) { this.rating = rating; }
+
+    public String getCustomerFeedback() { return customerFeedback; }
+    public void setCustomerFeedback(String customerFeedback) { this.customerFeedback = customerFeedback; }
 }

@@ -16,6 +16,21 @@
 $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
 
+# ── Load .env file variables ───────────────────────────────────────────────
+if (Test-Path "$root\.env") {
+    Write-Host "[*] Loading environment variables from .env file..." -ForegroundColor Cyan
+    Get-Content "$root\.env" | Where-Object { $_ -match '=' -and $_ -notmatch '^\s*#' } | ForEach-Object {
+        $key, $val = $_ -split '=', 2
+        $key = $key.Trim()
+        $val = $val.Trim()
+        if ($val -like '"*"' -or $val -like "'*'") {
+            $val = $val.Substring(1, $val.Length - 2)
+        }
+        [System.Environment]::SetEnvironmentVariable($key, $val, "Process")
+    }
+}
+
+
 # ── Config ──────────────────────────────────────────────────────────────────
 $MVN_VERSION    = "3.9.6"
 $MVN_URL        = "https://dlcdn.apache.org/maven/maven-3/$MVN_VERSION/binaries/apache-maven-$MVN_VERSION-bin.zip"
@@ -25,7 +40,11 @@ $MVN_BIN        = "$MVN_DIR\apache-maven-$MVN_VERSION\bin\mvn.cmd"
 $MONGO_VERSION  = "7.0.12"
 $MONGO_URL      = "https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-$MONGO_VERSION.zip"
 $MONGO_DIR      = "$root\.tools\mongodb"
-$MONGO_BIN      = "$MONGO_DIR\mongodb-windows-x86_64-$MONGO_VERSION\bin\mongod.exe"
+$MONGO_BIN      = "$MONGO_DIR\mongodb-win32-x86_64-windows-$MONGO_VERSION\bin\mongod.exe"
+if (-Not (Test-Path $MONGO_BIN)) {
+    $MONGO_BIN_CANDIDATE = (Get-ChildItem "$MONGO_DIR\*\bin\mongod.exe" -ErrorAction SilentlyContinue).FullName
+    if ($null -ne $MONGO_BIN_CANDIDATE) { $MONGO_BIN = $MONGO_BIN_CANDIDATE }
+}
 $MONGO_DATA     = "$root\.tools\mongodb-data"
 
 $LK_VERSION     = "1.7.2"
@@ -74,7 +93,8 @@ Start-Sleep -Seconds 2
 # ── Start Spring Boot Backend ─────────────────────────────────────────────────
 Write-Host "[*] Starting Spring Boot backend on :8080..." -ForegroundColor Yellow
 $javaProc = Start-Process -FilePath "cmd.exe" `
-    -ArgumentList "/c `"$MVN_BIN`" spring-boot:run -f `"$root\fixlink-server\pom.xml`"" `
+    -ArgumentList "/c `"$MVN_BIN`" spring-boot:run" `
+    -WorkingDirectory "$root\fixlink-server" `
     -PassThru -WindowStyle Normal
 Write-Host "   Spring Boot PID: $($javaProc.Id)"
 Write-Host "   Waiting for backend to start (30s)..." -ForegroundColor Gray
@@ -87,6 +107,7 @@ Push-Location "$root\fixlink-client"
 Write-Host "[*] Starting Vite frontend on :5173..." -ForegroundColor Yellow
 $frontendProc = Start-Process -FilePath "cmd.exe" `
     -ArgumentList "/c npm run dev" `
+    -WorkingDirectory "$root\fixlink-client" `
     -PassThru -WindowStyle Normal
 Pop-Location
 

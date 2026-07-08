@@ -81,6 +81,56 @@ function CreateSessionModal({ onClose, onCreate }) {
   );
 }
 
+function CancelSessionModal({ onClose, onConfirm }) {
+  const [reason, setReason] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await onConfirm(reason.trim());
+      onClose();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to cancel session');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-fl-surface border border-fl-border rounded-xl w-full max-w-md animate-fade-in p-6">
+        <h2 className="text-lg font-semibold text-fl-danger mb-2">Cancel Support Session</h2>
+        <p className="text-xs text-fl-muted mb-4">Please provide a reason for cancelling this session. The customer will see this message.</p>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs text-fl-muted mb-1">Reason for cancellation</label>
+            <input
+              id="cancellationReason"
+              className="input-base"
+              placeholder='e.g. "Scheduled by mistake" or "Customer did not join"'
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              autoFocus
+              required
+            />
+          </div>
+          {error && <p className="text-fl-danger text-xs">{error}</p>}
+          <div className="flex gap-2 pt-1">
+            <button type="button" onClick={onClose} className="btn-ghost flex-1">Keep Session</button>
+            <button type="submit" disabled={loading} className="btn-primary bg-fl-danger border-fl-danger hover:bg-red-600 flex-1">
+              {loading ? 'Cancelling…' : 'Cancel Session'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+
 function InviteBanner({ session, onDismiss }) {
   const inviteUrl = `${window.location.origin}/join/${session.inviteToken}`;
   const [copied, setCopied] = useState(false);
@@ -115,7 +165,15 @@ export default function DashboardPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [newSession, setNewSession] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [cancellingSession, setCancellingSession] = useState(null);
   const toast = useToast();
+
+  const handleCancelConfirm = async (reason) => {
+    if (!cancellingSession) return;
+    await client.post(`/sessions/${cancellingSession.id}/cancel`, { reason });
+    toast('Session cancelled successfully', 'info');
+    load();
+  };
 
   const load = useCallback(async () => {
     try {
@@ -221,7 +279,13 @@ export default function DashboardPage() {
               </p>
             </div>
           ) : (
-            sessions.map(s => <SessionCard key={s.id} session={s} />)
+            sessions.map(s => (
+              <SessionCard
+                key={s.id}
+                session={s}
+                onCancel={(sessionToCancel) => setCancellingSession(sessionToCancel)}
+              />
+            ))
           )}
         </div>
 
@@ -236,6 +300,14 @@ export default function DashboardPage() {
         <CreateSessionModal
           onClose={() => setShowCreate(false)}
           onCreate={handleCreated}
+        />
+      )}
+
+      {/* Cancel modal */}
+      {cancellingSession && (
+        <CancelSessionModal
+          onClose={() => setCancellingSession(null)}
+          onConfirm={handleCancelConfirm}
         />
       )}
     </div>

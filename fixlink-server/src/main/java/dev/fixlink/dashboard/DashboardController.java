@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 
@@ -17,12 +18,14 @@ public class DashboardController {
     private DashboardService dashboardService;
 
     @GetMapping("/overview")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getOverview() {
-        return ResponseEntity.ok(ApiResponse.ok(dashboardService.getOverview()));
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getOverview(HttpServletRequest request) {
+        String agentId = (String) request.getAttribute("userId");
+        return ResponseEntity.ok(ApiResponse.ok(dashboardService.getOverview(agentId)));
     }
 
     @GetMapping("/sessions")
-    public ResponseEntity<ApiResponse<List<SupportSession>>> getSessions() {
-        return ResponseEntity.ok(ApiResponse.ok(dashboardService.getSessions()));
+    public ResponseEntity<ApiResponse<List<SupportSession>>> getSessions(HttpServletRequest request) {
+        String agentId = (String) request.getAttribute("userId");
+        return ResponseEntity.ok(ApiResponse.ok(dashboardService.getSessions(agentId)));
     }
 }

@@ -1,5 +1,5 @@
 package dev.fixlink.shared;
 
 public enum SessionStatus {
-    WAITING, ACTIVE, ENDED
+    WAITING, ACTIVE, ENDED, CANCELLED
 }

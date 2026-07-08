@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/dashboard/**").hasRole("AGENT")
                 .requestMatchers("/api/sessions/create").hasRole("AGENT")
                 .requestMatchers("/api/sessions/*/end").hasRole("AGENT")
+                .requestMatchers("/api/sessions/*/cancel").hasRole("AGENT")
                 .requestMatchers("/api/insights/**").hasRole("AGENT")
                 .anyRequest().authenticated()
             )

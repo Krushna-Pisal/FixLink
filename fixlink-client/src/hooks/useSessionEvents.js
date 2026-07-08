@@ -7,7 +7,7 @@ import SockJS from 'sockjs-client';
  * Returns a list of events and triggers onSessionEnded callback
  * the instant the agent ends the session.
  */
-export function useSessionEvents(sessionId, { onSessionEnded, onCustomerJoined } = {}) {
+export function useSessionEvents(sessionId, { onSessionEnded, onCustomerJoined, onSessionCancelled } = {}) {
   const stompRef = useRef(null);
   const [events, setEvents] = useState([]);
 
@@ -31,6 +31,9 @@ export function useSessionEvents(sessionId, { onSessionEnded, onCustomerJoined }
             if (event.type === 'SESSION_ENDED') {
               onSessionEnded?.();
             }
+            if (event.type === 'SESSION_CANCELLED') {
+              onSessionCancelled?.(event.reason);
+            }
             if (event.type === 'CUSTOMER_JOINED') {
               onCustomerJoined?.(event.customerName);
             }
@@ -44,7 +47,7 @@ export function useSessionEvents(sessionId, { onSessionEnded, onCustomerJoined }
     stompRef.current = stomp;
 
     return () => stomp.deactivate();
-  }, [sessionId, onSessionEnded, onCustomerJoined]);
+  }, [sessionId, onSessionEnded, onCustomerJoined, onSessionCancelled]);
 
   return { events };
 }

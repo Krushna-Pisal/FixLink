@@ -27,6 +27,9 @@ export default function SessionRoomPage() {
   const [summary, setSummary] = useState(null);
   const [ending, setEnding] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelling, setCancelling] = useState(false);
   const toast = useToast();
 
   const participantName = user?.displayName || user?.name || 'Agent';
@@ -41,6 +44,9 @@ export default function SessionRoomPage() {
     setEnding(true);
     try {
       await client.post(`/sessions/${sessionId}/end`);
+      if (liveKit.room) {
+        try { liveKit.room.disconnect(); } catch (_) {}
+      }
       const { data } = await client.post(`/insights/${sessionId}/generate`);
       const raw = data?.data || data;
 
@@ -67,7 +73,26 @@ export default function SessionRoomPage() {
     } finally {
       setEnding(false);
     }
-  }, [sessionId, toast]);
+  }, [sessionId, toast, liveKit.room]);
+
+  const handleCancelSession = async (e) => {
+    e.preventDefault();
+    if (!cancelReason.trim()) return;
+    setCancelling(true);
+    try {
+      if (liveKit.room) {
+        try { liveKit.room.disconnect(); } catch (_) {}
+      }
+      await client.post(`/sessions/${sessionId}/cancel`, { reason: cancelReason.trim() });
+      toast('Session cancelled successfully', 'info');
+      setShowCancelModal(false);
+      navigate('/');
+    } catch (err) {
+      toast(err.response?.data?.message || 'Failed to cancel session', 'error');
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   const handleSummaryClose = () => {
     setShowSummary(false);
@@ -99,14 +124,23 @@ export default function SessionRoomPage() {
           </button>
 
           {isAgent && (
-            <button
-              id="endSessionBtn"
-              onClick={handleEndSession}
-              disabled={ending || session.status === 'ENDED'}
-              className="btn-danger"
-            >
-              {ending ? 'Ending…' : 'End Session'}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowCancelModal(true)}
+                disabled={ending || cancelling || session.status === 'ENDED'}
+                className="btn-ghost text-fl-danger border border-fl-danger/20 hover:bg-fl-danger/10 text-xs px-3 py-1.5 rounded-lg"
+              >
+                Cancel Session
+              </button>
+              <button
+                id="endSessionBtn"
+                onClick={handleEndSession}
+                disabled={ending || cancelling || session.status === 'ENDED'}
+                className="btn-danger text-xs px-3 py-1.5 rounded-lg"
+              >
+                {ending ? 'Ending…' : 'End Session'}
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -146,6 +180,36 @@ export default function SessionRoomPage() {
           sessionCode={session.sessionCode}
           onClose={handleSummaryClose}
         />
+      )}
+
+      {/* Cancellation Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-fl-surface border border-fl-border rounded-xl w-full max-w-md animate-fade-in p-6">
+            <h2 className="text-lg font-semibold text-fl-danger mb-2">Cancel Support Session</h2>
+            <p className="text-xs text-fl-muted mb-4">Please provide a reason for cancelling this session. The customer will see this message.</p>
+            <form onSubmit={handleCancelSession} className="space-y-4">
+              <div>
+                <label className="block text-xs text-fl-muted mb-1">Reason for cancellation</label>
+                <input
+                  id="cancelReasonInput"
+                  className="input-base"
+                  placeholder='e.g. "Scheduled by mistake" or "Customer did not join"'
+                  value={cancelReason}
+                  onChange={e => setCancelReason(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button type="button" onClick={() => setShowCancelModal(false)} className="btn-ghost flex-1">Keep Session</button>
+                <button type="submit" disabled={cancelling} className="btn-primary bg-fl-danger border-fl-danger hover:bg-red-600 flex-1">
+                  {cancelling ? 'Cancelling…' : 'Cancel Session'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

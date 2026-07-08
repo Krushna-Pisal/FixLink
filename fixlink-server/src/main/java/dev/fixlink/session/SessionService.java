@@ -103,6 +103,59 @@ public class SessionService {
         return saved;
     }
 
+    public SupportSession cancelSession(String sessionId, String agentId, String reason) {
+        SupportSession session = getSession(sessionId);
+
+        if (!session.getAgentId().equals(agentId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the session agent can cancel this session");
+        }
+
+        if (session.getStatus() == SessionStatus.ENDED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot cancel an already ended session");
+        }
+
+        session.setStatus(SessionStatus.CANCELLED);
+        session.setCancellationReason(reason);
+        session.setEndedAt(Instant.now());
+        SupportSession saved = sessionRepo.save(session);
+        timeline.record(saved.getId(), "System", EventType.SESSION_CANCELLED, "Reason: " + (reason != null ? reason : "No reason provided"));
+
+        // Push SESSION_CANCELLED event over STOMP so customer's browser reacts immediately
+        messagingTemplate.convertAndSend(
+            "/topic/session." + sessionId + ".events",
+            Map.of("type", "SESSION_CANCELLED", "sessionId", sessionId, "reason", reason != null ? reason : "")
+        );
+
+        return saved;
+    }
+
+    public SupportSession customerEndSession(String inviteToken, Integer rating, String feedback) {
+        SupportSession session = sessionRepo.findByInviteToken(inviteToken)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
+
+        if (session.getStatus() == SessionStatus.ENDED || session.getStatus() == SessionStatus.CANCELLED) {
+            if (rating != null) session.setRating(rating);
+            if (feedback != null) session.setCustomerFeedback(feedback);
+            return sessionRepo.save(session);
+        }
+
+        session.setStatus(SessionStatus.ENDED);
+        session.setEndedAt(Instant.now());
+        if (rating != null) session.setRating(rating);
+        if (feedback != null) session.setCustomerFeedback(feedback);
+        SupportSession saved = sessionRepo.save(session);
+
+        timeline.record(saved.getId(), "Customer", EventType.SESSION_ENDED, "Customer ended session. Rating: " + rating + ", Feedback: " + feedback);
+
+        // Push SESSION_ENDED event over STOMP so agent's browser reacts immediately
+        messagingTemplate.convertAndSend(
+            "/topic/session." + saved.getId() + ".events",
+            Map.of("type", "SESSION_ENDED", "sessionId", saved.getId(), "rating", rating != null ? rating : 0, "feedback", feedback != null ? feedback : "")
+        );
+
+        return saved;
+    }
+
     public List<SupportSession> getAllSessions() {
         return sessionRepo.findAll();
     }
