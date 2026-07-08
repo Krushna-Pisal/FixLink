@@ -1,3 +1,4 @@
-.tools/
-.env
+node_modules/
+fixlink-client/node_modules/
+fixlink-server/target/
 .env
