@@ -15,6 +15,24 @@ public class LiveKitService {
     @Value("${livekit.api-secret}")
     private String apiSecret;
 
+    @Value("${livekit.public-url:}")
+    private String publicUrl;
+
+    @Value("${livekit.host:http://localhost:7880}")
+    private String host;
+
+    public String getPublicUrl() {
+        if (publicUrl != null && !publicUrl.isEmpty()) {
+            return publicUrl;
+        }
+        if (host.startsWith("https://")) {
+            return host.replace("https://", "wss://");
+        } else if (host.startsWith("http://")) {
+            return host.replace("http://", "ws://");
+        }
+        return host;
+    }
+
     public String generateToken(String roomName, String participantName, boolean isAgent) {
         AccessToken token = new AccessToken(apiKey, apiSecret);
         token.setName(participantName);

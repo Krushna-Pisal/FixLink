@@ -14,6 +14,7 @@ livekit:
   api-key: ${LIVEKIT_API_KEY:devkey}
   api-secret: ${LIVEKIT_API_SECRET:secret}
   host: ${LIVEKIT_HOST:http://localhost:7880}
+  public-url: ${LIVEKIT_PUBLIC_URL:}
 
 groq:
   api-key: ${GROQ_API_KEY:}

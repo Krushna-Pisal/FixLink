@@ -32,6 +32,11 @@ export function useLiveKit(sessionId, roomName, participantName) {
         const token = data?.data?.token || data?.token;
         if (!token) throw new Error('No LiveKit token received from server');
 
+        let livekitUrl = data?.data?.livekitUrl || data?.livekitUrl;
+        if (!livekitUrl) {
+          livekitUrl = import.meta.env.VITE_LIVEKIT_URL || 'ws://localhost:7880';
+        }
+
         const room = new Room({
           adaptiveStream: true,
           dynacast: true,
@@ -53,7 +58,6 @@ export function useLiveKit(sessionId, roomName, participantName) {
           setLocalTracks(tracks);
         });
 
-        const livekitUrl = import.meta.env.VITE_LIVEKIT_URL || 'ws://localhost:7880';
         console.log('[LiveKit] Connecting to', livekitUrl, 'room:', roomName);
 
         // Connect with camera + mic enabled automatically

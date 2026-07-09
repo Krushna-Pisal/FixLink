@@ -25,6 +25,10 @@ public class LiveKitController {
         boolean isAgent = "AGENT".equals(role);
 
         String token = liveKitService.generateToken(roomName, participantName, isAgent);
-        return ResponseEntity.ok(ApiResponse.ok(Map.of("token", token)));
+        String livekitUrl = liveKitService.getPublicUrl();
+        return ResponseEntity.ok(ApiResponse.ok(Map.of(
+            "token", token,
+            "livekitUrl", livekitUrl
+        )));
     }
 }
